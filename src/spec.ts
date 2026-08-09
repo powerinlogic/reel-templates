@@ -72,8 +72,10 @@ export const sceneDuration = (s: Scene): number => {
   switch (s.type) {
     case "title_card":
       return 108;
+    // A photo needs long enough to actually look at, read the line, and sit for
+    // a moment. 96 frames read as a slideshow flicking past.
     case "photo_beat":
-      return 96;
+      return 150;
     case "shot_beat":
       return 96;
     case "mosaic_beat":
@@ -176,13 +178,20 @@ export const normalizeSpec = (raw: unknown): NormalSpec => {
   const style: "promo" | "casual" = spec.style === "casual" ? "casual" : "promo";
 
   // A promo reel that doesn't ask for anything is a wasted render, so it always
-  // lands on a CTA. A casual reel that asks for something stops being casual —
-  // it gets a quiet sign-off with no cta and no code.
-  if (!out.length || out[out.length - 1].scene.type !== "end_card") {
-    out.push({
-      scene: style === "casual" ? { type: "end_card" } : { type: "end_card", cta: "GET TICKETS" },
-      len: 0,
-    });
+  // lands on a CTA.
+  //
+  // A casual reel gets no end card at all unless the spec asked for one. A dark
+  // frame with the business name on it is a brand bumper, and nobody ends a post
+  // about their own vines with a bumper — it just stops on the last photo.
+  if (style !== "casual" && (!out.length || out[out.length - 1].scene.type !== "end_card")) {
+    out.push({ scene: { type: "end_card", cta: "GET TICKETS" }, len: 0 });
+  }
+
+  // An empty TransitionSeries throws, so a spec that lost every scene still has
+  // to render something rather than take the whole job down.
+  if (!out.length) {
+    warnings.push("no usable scenes; falling back to a bare end card");
+    out.push({ scene: { type: "end_card" }, len: 0 });
   }
 
   for (const n of out) n.len = sceneDuration(n.scene);
