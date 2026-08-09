@@ -1,5 +1,13 @@
 import React from "react";
-import { AbsoluteFill, Img, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
+import {
+  AbsoluteFill,
+  Img,
+  OffthreadVideo,
+  interpolate,
+  spring,
+  useCurrentFrame,
+  useVideoConfig,
+} from "remotion";
 import { BgMesh, Grain, Vignette, useBreath } from "../components/Layers";
 import { WordReveal, Kicker } from "../components/Type";
 import { Mosaic } from "../components/Mosaic";
@@ -344,28 +352,43 @@ export const PhotoBeat: React.FC<{ asset: Asset; caption?: string }> = ({ asset,
   const { fps, durationInFrames } = useVideoConfig();
   const { exit } = useExit();
 
-  // Slow, single-direction push. No Ken Burns ping-pong, no bounce.
+  // Slow, single-direction push on stills. Footage already moves on its own,
+  // so it gets none — a synthetic zoom on top of real camera motion is the
+  // thing that makes phone clips look like they went through a slideshow app.
+  const isVideo = asset.type === "video";
   const p = interpolate(frame, [0, durationInFrames], [0, 1], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
     easing: theme.ease.drift,
   });
-  const scale = 1.04 + 0.05 * p;
+  const scale = isVideo ? 1 : 1.04 + 0.05 * p;
 
   const cap = spring({ frame: frame - 14, fps, config: theme.spring.soft, durationInFrames: 24 });
+  const startFrom = isVideo && typeof asset.in === "number" ? Math.round(asset.in * fps) : 0;
 
   return (
     <AbsoluteFill style={{ backgroundColor: "#0d0b0f", overflow: "hidden" }}>
       <AbsoluteFill style={{ transform: `scale(${scale})`, transformOrigin: "50% 50%" }}>
-        <Img
-          src={resolveUrl(asset.url)}
-          style={{ width: "100%", height: "100%", objectFit: "cover", filter: "saturate(1.04)" }}
-        />
+        {isVideo ? (
+          <OffthreadVideo
+            src={resolveUrl(asset.url)}
+            startFrom={startFrom}
+            muted
+            style={{ width: "100%", height: "100%", objectFit: "cover", filter: "saturate(1.04)" }}
+          />
+        ) : (
+          <Img
+            src={resolveUrl(asset.url)}
+            style={{ width: "100%", height: "100%", objectFit: "cover", filter: "saturate(1.04)" }}
+          />
+        )}
       </AbsoluteFill>
 
       {caption ? (
         <>
-          {/* Just enough gradient to keep the words legible over a bright sky. */}
+          {/* The caption sits well above the Reels caption rail, so the scrim has
+              to reach that high too — a bottom-anchored gradient left the words
+              floating on bare photo. */}
           <AbsoluteFill style={{ pointerEvents: "none" }}>
             <div
               style={{
@@ -373,8 +396,9 @@ export const PhotoBeat: React.FC<{ asset: Asset; caption?: string }> = ({ asset,
                 left: 0,
                 right: 0,
                 bottom: 0,
-                height: "42%",
-                background: "linear-gradient(0deg, rgba(8,6,10,0.62) 0%, rgba(8,6,10,0) 100%)",
+                height: "66%",
+                background:
+                  "linear-gradient(0deg, rgba(8,6,10,0.80) 0%, rgba(8,6,10,0.62) 34%, rgba(8,6,10,0.28) 62%, rgba(8,6,10,0) 100%)",
               }}
             />
           </AbsoluteFill>
@@ -382,17 +406,17 @@ export const PhotoBeat: React.FC<{ asset: Asset; caption?: string }> = ({ asset,
             style={{
               position: "absolute",
               left: 72,
-              right: 220,
-              bottom: SAFE_BOTTOM + 20,
+              right: 150,
+              bottom: SAFE_BOTTOM + 250,
               opacity: (1 - exit) * cap,
               transform: `translateY(${(1 - cap) * 14}px)`,
               fontFamily: theme.font.ui,
-              fontWeight: 300,
-              fontSize: 46,
-              lineHeight: 1.3,
+              fontWeight: 400,
+              fontSize: 58,
+              lineHeight: 1.28,
               letterSpacing: 0.2,
-              color: "rgba(252,250,244,0.96)",
-              textShadow: "0 2px 14px rgba(0,0,0,0.55)",
+              color: "rgba(255,254,250,0.98)",
+              textShadow: "0 2px 10px rgba(0,0,0,0.65), 0 0 40px rgba(0,0,0,0.45)",
             }}
           >
             {caption}
