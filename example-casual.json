@@ -1,0 +1,10 @@
+{"spec":{
+ "version":2,"style":"casual","music_mood":"mellow",
+ "scenes":[
+  {"type":"photo_beat","asset":"p1","caption":"Saturday, 11am. Veraison is done — the clusters have gone soft and dark."},
+  {"type":"mosaic_beat","kicker":"this week in the rows","name":"Bloom on the skins","line":"That dusty film is wild yeast. It is supposed to be there.","assets":["p1","p2","p3","p4"]},
+  {"type":"photo_beat","asset":"p4","caption":"Six weeks out from picking, give or take the weather."},
+  {"type":"end_card","line":"Millville, New Jersey"}
+ ],
+ "assets":{"p1":{"type":"image","url":"vines/v1.jpg"},"p2":{"type":"image","url":"vines/v2.jpg"},"p3":{"type":"image","url":"vines/v3.jpg"},"p4":{"type":"image","url":"vines/v4.jpg"}}
+}}
