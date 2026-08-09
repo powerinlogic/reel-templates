@@ -6,12 +6,12 @@ import { slide } from "@remotion/transitions/slide";
 import { wipe } from "@remotion/transitions/wipe";
 import { Fonts } from "./components/Fonts";
 import { theme } from "./theme";
-import { normalizeSpec, TRANSITION } from "./spec";
+import { normalizeSpec, TRANSITION, CASUAL_TRANSITION } from "./spec";
 import { renderScene } from "./scenes";
 
 const soft = springTiming({ config: { damping: 200, mass: 0.6 }, durationInFrames: TRANSITION });
 const eased = linearTiming({ durationInFrames: TRANSITION, easing: theme.ease.inOut });
-const gentle = linearTiming({ durationInFrames: 20, easing: theme.ease.inOut });
+const gentle = linearTiming({ durationInFrames: CASUAL_TRANSITION, easing: theme.ease.inOut });
 
 /* Assigned by index, never by the model. The rhythm varies without anyone
    having to decide each one, and it can't come back wrong. */

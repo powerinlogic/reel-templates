@@ -51,6 +51,12 @@ export type Spec = {
 
 export const FPS = 30;
 export const TRANSITION = 14;
+/** Casual reels crossfade slower. Reel.tsx MUST use transitionFrames() too —
+ *  if these two disagree the composition is longer than the series and the reel
+ *  ends on a stretch of empty background. */
+export const CASUAL_TRANSITION = 20;
+export const transitionFrames = (style: "promo" | "casual") =>
+  style === "casual" ? CASUAL_TRANSITION : TRANSITION;
 
 // Measured against the rendered output, not guessed: cta wraps past 18 and code
 // past 22 at the sizes these render at.
@@ -181,7 +187,8 @@ export const normalizeSpec = (raw: unknown): NormalSpec => {
 
   for (const n of out) n.len = sceneDuration(n.scene);
 
-  const total = out.reduce((a, n) => a + n.len, 0) - TRANSITION * Math.max(0, out.length - 1);
+  const total =
+    out.reduce((a, n) => a + n.len, 0) - transitionFrames(style) * Math.max(0, out.length - 1);
 
   return { scenes: out, assets, style, logo: spec.logo, total: Math.max(FPS, total), warnings };
 };
